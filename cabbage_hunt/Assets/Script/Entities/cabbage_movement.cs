@@ -4,27 +4,46 @@ using UnityEngine;
 
 public class cabbage_movement : MonoBehaviour {
 
-	private float ran;
-
-	private float move_ran;
-	public float MoveSpeed;
+	private bool ALIVE;
+	private Quaternion ROTATION;
+	private Vector3 DIRECTION, axis, position;
+	private float SPEED, MAGNITUDE, FREQUENCY;
+	public float min_speed;
+	public float max_speed;
     public float min_magnitude;
 	public float max_magnitude;
-    public float frequency;
-    private Vector3 axis;
- 
-    private Vector3 pos;
+    public float min_frequency;
+	public float max_frequency;
+	public float min_angle;
+	public float max_angle;
 	 
 	void Start () {
-		ran = Random.Range(min_magnitude, max_magnitude);
-		move_ran = Random.Range(4, 8);
-		pos = transform.position;
-         axis = new Vector3(0,1,0);  // May or may not be the axis you want
+		//TODO: create alve thing
+		ALIVE = true;
+		float temp = Random.Range(min_angle, max_angle);
+		transform.rotation =  Quaternion.Euler(0, 0, temp);
+		ROTATION = transform.rotation;
+		DIRECTION = new Vector3(-1, 0, 0);
+		MAGNITUDE = Random.Range(min_magnitude, max_magnitude);
+		SPEED = Random.Range(min_speed, max_speed);
+		FREQUENCY = Random.Range(min_frequency, max_frequency);
+		position = transform.position;
+        axis = new Vector3(0,1,0);
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		pos += new Vector3(-1,0,0) * Time.deltaTime * move_ran;
-        transform.position = pos + axis * Mathf.Sin (Time.time * frequency) *ran;
+		if(ALIVE){
+			position += DIRECTION * Time.deltaTime * SPEED;
+        	transform.position = position + axis * Mathf.Sin (Time.time * FREQUENCY) * MAGNITUDE;
+			// bring rotation here??
+
+			if(ROTATION != transform.rotation){
+				ALIVE = false;
+			}
+		}else{
+			Rigidbody2D temp = gameObject.GetComponent<Rigidbody2D>( );
+			temp.gravityScale = 1.0f;
+		}
 	}
 }
