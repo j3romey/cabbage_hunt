@@ -8,14 +8,16 @@ public class PlayerMovement : MonoBehaviour {
 	public Animator animator;
 	public GroundCheck groundCheck;
 
-
 	private Rigidbody2D body;
 
 	private float movement;
 	private bool face_right;
 	public float speed;
+	public float jump;
 
-	Boolean attacking;
+	private Boolean attacking;
+	private Boolean grounded;
+	private Boolean jumped;
 	private float nextAttack;
 	private float attackDelay;
 	private int attackState;
@@ -25,43 +27,64 @@ public class PlayerMovement : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		body = GetComponent<Rigidbody2D>();
-		face_right = true;
 
 		attackState = 0;
-		attackDelay = 0.25f;
+		attackDelay = 0.275f;
 		timePassed = 0f;
+
+		face_right = true;
 		attacking = false;
+		jumped = false;
+		grounded = false;
 	}
 	
 	// Update is called once per frame
 	void FixedUpdate () {
 
-
+		// attack timer reset or not should move to a different script?
 		if (attacking) {
 			timePassed += Time.deltaTime;
-			if (timePassed > attackDelay ) {
-				//attackState = 0;
-				//animator.SetInteger ("AttackState", 0);
+			if (timePassed > attackDelay) {
 				animator.SetBool ("Attacking", false);
 				timePassed = 0f;
+				attacking = false;
 			}
 		}
 
-
+		if (groundCheck.update () < 0.7f) {
+			grounded = true;
+			jumped = false;
+		}
+			
 		//Debug.Log(Input.GetAxis("Horizontal"));
 		movement = Input.GetAxis("Horizontal");
 		flip();
 
 		animator.SetFloat ("GroundDist", groundCheck.update ());
+		if (attacking) {
+			body.velocity = new Vector2(movement* speed/4, body.velocity.y);
+		} else {
+			body.velocity = new Vector2(movement* speed, body.velocity.y);
+		}
 
-		body.velocity = new Vector2(movement* speed, body.velocity.y);
 		animator.SetFloat ("MoveSpeed", Mathf.Abs (body.velocity.x));
 		animator.SetFloat ("FallingSpeed",(body.velocity.y));
 
+		// jump button
 		if (Input.GetKeyDown ("space")) {
-			body.AddForce (transform.up * 350);
+
+			if (grounded && !jumped) {
+				body.velocity = new Vector2 (body.velocity.x, jump);
+				grounded = false;
+				jumped = true;
+			} else if (!grounded && jumped) {
+				body.velocity = new Vector2 (body.velocity.x, jump);
+				jumped = false;
+			}
 		}
 
+
+		// attack button
 		if (Input.GetKeyDown (KeyCode.Z)) {
 			attacking = true;
 			//animator.SetInteger ("AttackState", attackState);
@@ -71,7 +94,7 @@ public class PlayerMovement : MonoBehaviour {
 
 	}
 
-
+	// paper mario effect
 	public void flip(){
 		if(movement > 0){
 			if(face_right == false){
