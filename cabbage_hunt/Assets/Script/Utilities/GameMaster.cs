@@ -6,6 +6,7 @@ public class GameMaster : MonoBehaviour
 
 	//public GameObject soundManager;
 	public ScoreManager score;
+	public GameObject player;
 
 	void Awake()
 	{

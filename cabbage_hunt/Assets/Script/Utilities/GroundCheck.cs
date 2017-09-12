@@ -17,7 +17,6 @@ public class GroundCheck : MonoBehaviour {
 	public float update(){
 		RaycastHit2D hit = Physics2D.Raycast(transform.position, -Vector2.up, 9999, layer_mask);
 		if (hit.collider != null) {
-			Debug.Log (hit.distance);
 			return hit.distance;
 		} else {
 			return -1;
