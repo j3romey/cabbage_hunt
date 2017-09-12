@@ -4,6 +4,8 @@ using UnityEngine;
 using System;
 
 public class PlayerMovement : MonoBehaviour {
+	// debugging purposes
+	public Player player;
 
 	public Animator animator;
 	public GroundCheck groundCheck;
@@ -20,15 +22,12 @@ public class PlayerMovement : MonoBehaviour {
 	private Boolean jumped;
 	private float nextAttack;
 	private float attackDelay;
-	private int attackState;
 	private float timePassed;
 
 	
 	// Use this for initialization
 	void Start () {
 		body = GetComponent<Rigidbody2D>();
-
-		attackState = 0;
 		attackDelay = 0.275f;
 		timePassed = 0f;
 
@@ -39,7 +38,9 @@ public class PlayerMovement : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void FixedUpdate () {
+	void Update () {
+
+		//Debug.Log (body.velocity.x); -7
 
 		// attack timer reset or not should move to a different script?
 		if (attacking) {
@@ -90,6 +91,35 @@ public class PlayerMovement : MonoBehaviour {
 			//animator.SetInteger ("AttackState", attackState);
 			animator.SetBool ("Attacking", true);
 			timePassed = 0;
+		}
+
+		if (Input.GetKeyDown (KeyCode.N)) {
+			body.velocity = new Vector2 (jump*10, jump/2);
+		}
+
+		if (Input.GetKeyDown (KeyCode.M)) {
+			if (grounded) {
+				body.velocity = new Vector2 (jump*10, jump/2);
+				grounded = false;
+			} else {
+				body.velocity = new Vector2 (jump*10, body.velocity.y);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.P)) {
+			player.damage (10);
+		}
+
+		if (Input.GetKeyDown (KeyCode.L)) {
+			player.heal (5);
+		}
+
+		if (Input.GetKeyDown (KeyCode.O)) {
+			player.updateMana (-10);
+		}
+
+		if (Input.GetKeyDown (KeyCode.K)) {
+			player.updateMana (5);
 		}
 
 	}
