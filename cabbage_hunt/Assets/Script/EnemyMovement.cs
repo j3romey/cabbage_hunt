@@ -13,42 +13,49 @@ public class EnemyMovement : MonoBehaviour {
 		attacking,  // 3
 		hit,  		// 4
 	}
-
-	public enum DIRECTION{
-		left, right
-	}
+		
 
 	public Animator animator;
 	private Rigidbody2D body;
 	private int layer_mask;
 	private bool face_right;
+	private Vector3 origin;
 
 	public STATE state;
-	public DIRECTION direction;
-	public float player_distance;
+	public float attack_range;
 	public float move_distance;
 	public float speed;
-
+	public float idle_delay;
+	private float time_passed;
 
 	//continous vs not
 
 	// Use this for initialization
 	void Start () {
 		body = GetComponent<Rigidbody2D>();
-		state = STATE.walking;
-		face_right = true;
 		layer_mask = LayerMask.GetMask("Player");
+		state = STATE.idle;
+		face_right = true;
+		time_passed = 0f;
+		origin = this.gameObject.transform.position;
 	}
 	
 	// Update is called once per frame
 	void Update () {
+		time_passed += Time.deltaTime;  // possible memory leak here?
 		flip ();
 
-		// use the move distance
+		// variables to determine state
+		if (state == STATE.idle) {
+			if (time_passed > idle_delay) {
+				state = STATE.walking;
+				time_passed = 0;
+			}
+		}
+
 		if (playerInRange ()) {
-			//direction = DIRECTION.right;
 			state = STATE.attacking;
-		} else {
+		} else if (state != STATE.idle) {
 			state = STATE.walking;
 		}
 			
@@ -58,17 +65,36 @@ public class EnemyMovement : MonoBehaviour {
 				break;
 			case STATE.walking:
 				animator.SetInteger ("State", 2);
-				if (direction == DIRECTION.left) {
-					left ();
-				} else {
-					right ();
-				}
+				walk ();
 				break;
 			case STATE.attacking:
 				attack ();
 				break;
 			default:
 				break;
+		}
+	}
+
+	// Enemy Methods
+
+	// always walk left first
+	public void walk(){
+		// going right (positive x)
+		if (face_right) {
+			right ();
+			if ( transform.position.x > (origin.x + move_distance) ) {
+				Debug.Log ("HERE1");
+				left();
+			}
+
+		} 
+		// going left (negative x)
+		else {
+			left ();
+			if (transform.position.x < (origin.x - move_distance) ) {
+				Debug.Log ("HERE2");
+				right ();
+			}
 		}
 	}
 
@@ -84,24 +110,37 @@ public class EnemyMovement : MonoBehaviour {
 		body.velocity = new Vector2 (0, 0);
 		animator.SetTrigger ("Attack");
 		state = STATE.idle;
-		if (direction == DIRECTION.left) {
-			direction = DIRECTION.right;
-		} else {
-			direction = DIRECTION.left;
-		}
+		time_passed = 0;
 	}
 
 	public Boolean playerInRange(){
-		Boolean same_x = Mathf.Abs(GameMaster.GM.player.transform.position.x - transform.position.x) < player_distance;
-		Boolean same_y = Mathf.Abs(GameMaster.GM.player.transform.position.y - transform.position.y) < 1f;
-		return same_x && same_y;
+		
+		RaycastHit2D hit;
+		// determines which direction they raycast should go
+		if (face_right) {
+			hit = Physics2D.Raycast (transform.position, -Vector2.left, 9999, layer_mask);
+		} else {
+			hit = Physics2D.Raycast (transform.position, Vector2.left, 9999, layer_mask);
+		}
+
+		//determines if raycast hit is within range
+		if (hit.collider != null) {
+			float distance = Mathf.Abs (hit.point.x - transform.position.x);
+			if (distance < attack_range) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
 	}
 
+	// used to flip the sprite paper mario style
 	public void flip(){
 		if(body.velocity.x > 0){
 			if(face_right == false){
 				face_right = true;
-				//direction = DIRECTION.right;
 			}
 
 			if(Mathf.Round(transform.eulerAngles.y) != 0){
@@ -111,7 +150,6 @@ public class EnemyMovement : MonoBehaviour {
 		}else if(body.velocity.x < 0){
 			if(face_right == true){
 				face_right = false;
-				//direction = DIRECTION.left;
 			}
 
 			if(Mathf.Round(transform.eulerAngles.y) != 180){
