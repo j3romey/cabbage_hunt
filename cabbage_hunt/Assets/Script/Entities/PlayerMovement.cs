@@ -52,7 +52,7 @@ public class PlayerMovement : MonoBehaviour {
 			}
 		}
 
-		if (groundCheck.update () < 0.7f) {
+		if (groundCheck.update () < groundCheck.groundDistance) {
 			grounded = true;
 			jumped = false;
 		}
@@ -78,6 +78,7 @@ public class PlayerMovement : MonoBehaviour {
 				body.velocity = new Vector2 (body.velocity.x, jump);
 				grounded = false;
 				jumped = true;
+
 			} else if (!grounded && jumped) {
 				body.velocity = new Vector2 (body.velocity.x, jump);
 				jumped = false;

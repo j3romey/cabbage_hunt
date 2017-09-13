@@ -22,4 +22,12 @@ public class GroundCheck : MonoBehaviour {
 			return -1;
 		}
 	}
+
+	public void enable(){
+
+	}
+
+	public void disable(){
+
+	}
 }

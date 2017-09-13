@@ -9,12 +9,12 @@ public class EnemyMovement : MonoBehaviour {
 	public enum STATE{
 		dead,		// 0
 		idle, 		// 1
-		walking, 	// 2
+		moving, 	// 2
 		attacking,  // 3
 		hit,  		// 4
 	}
 		
-
+	public Enemy enemy;  // rename later?
 	public Animator animator;
 	private Rigidbody2D body;
 	private int layer_mask;
@@ -28,10 +28,10 @@ public class EnemyMovement : MonoBehaviour {
 	public float idle_delay;
 	private float time_passed;
 
-	//continous vs not
 
 	// Use this for initialization
 	void Start () {
+		enemy = GetComponent<Enemy>();
 		body = GetComponent<Rigidbody2D>();
 		layer_mask = LayerMask.GetMask("Player");
 		state = STATE.idle;
@@ -42,13 +42,13 @@ public class EnemyMovement : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		time_passed += Time.deltaTime;  // possible memory leak here?
+		
 		flip ();
-
 		// variables to determine state
 		if (state == STATE.idle) {
+			time_passed += Time.deltaTime;
 			if (time_passed > idle_delay) {
-				state = STATE.walking;
+				state = STATE.moving;
 				time_passed = 0;
 			}
 		}
@@ -56,20 +56,31 @@ public class EnemyMovement : MonoBehaviour {
 		if (playerInRange ()) {
 			state = STATE.attacking;
 		} else if (state != STATE.idle) {
-			state = STATE.walking;
+			state = STATE.moving;
+		}
+
+		if (enemy.status == Enemy.STATUS.DEAD) {
+			state = STATE.dead;
 		}
 			
 		switch(state){
+			case STATE.dead:
+				animator.SetInteger ("State", 0);
+				break;
 			case STATE.idle:
 				animator.SetInteger ("State", 1);
 				break;
-			case STATE.walking:
+			case STATE.moving:
 				animator.SetInteger ("State", 2);
-				walk ();
+				move ();
 				break;
 			case STATE.attacking:
 				attack ();
 				break;
+			case STATE.hit:
+				hit ();
+				break;
+
 			default:
 				break;
 		}
@@ -77,25 +88,26 @@ public class EnemyMovement : MonoBehaviour {
 
 	// Enemy Methods
 
-	// always walk left first
-	public void walk(){
-		// going right (positive x)
+	public void hit(){
+		animator.SetTrigger ("Hit");
+	}
+
+	// assign different movements here.
+	public void move(){
 		if (face_right) {
 			right ();
 			if ( transform.position.x > (origin.x + move_distance) ) {
-				Debug.Log ("HERE1");
 				left();
 			}
-
 		} 
 		// going left (negative x)
 		else {
 			left ();
 			if (transform.position.x < (origin.x - move_distance) ) {
-				Debug.Log ("HERE2");
 				right ();
 			}
 		}
+
 	}
 
 	public void left(){
@@ -112,6 +124,13 @@ public class EnemyMovement : MonoBehaviour {
 		state = STATE.idle;
 		time_passed = 0;
 	}
+
+
+	public void die(){
+		body.velocity = new Vector2 (0, 0);
+		animator.SetTrigger ("Dead");
+	}
+
 
 	public Boolean playerInRange(){
 		

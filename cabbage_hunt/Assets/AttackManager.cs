@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using NUnit.Framework.Constraints;
 
-public class PlayerAttackManager : MonoBehaviour {
+public class AttackManager : MonoBehaviour {
+
+	public GameObject BASE_OBJECT;
 
 	public enum TYPE
 	{
@@ -16,16 +18,16 @@ public class PlayerAttackManager : MonoBehaviour {
 	void Start(){
 		foreach (GameObject attack in Attacks) {
 			switch (type) {
-				case TYPE.PlayerAttack:
-					attack.layer = LayerMask.NameToLayer("PlayerAttack");
-					break;
+			case TYPE.PlayerAttack:
+				attack.layer = LayerMask.NameToLayer("PlayerAttack");
+				break;
 
-				case TYPE.EnemyAttack:
-					attack.layer = LayerMask.NameToLayer("EnemyAttack");
-					break;
+			case TYPE.EnemyAttack:
+				attack.layer = LayerMask.NameToLayer("EnemyAttack");
+				break;
 
-				default:
-					break;
+			default:
+				break;
 			}
 		}
 	}
@@ -55,6 +57,15 @@ public class PlayerAttackManager : MonoBehaviour {
 
 	public void disableAttack(int num){
 		Attacks [num].SetActive (false);
+	}
+
+	public void destroy(){
+		Destroy (transform.parent.gameObject);
+		//Destroy (gameObject);
+	}
+
+	public void disableAllColliders(){
+		BASE_OBJECT.layer = LayerMask.NameToLayer("Dead");
 	}
 
 }

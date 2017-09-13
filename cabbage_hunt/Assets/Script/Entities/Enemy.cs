@@ -9,10 +9,10 @@ public class Enemy : MonoBehaviour {
 		ALIVE, DEAD, POISON, STUNNED, BURNED
 	}
 
-
+	public EnemyMovement movement;
 	public STATUS status;
-	public float health;
-	public float damage;
+	public int health;
+	public int damage;
 	public int points; 
 
 	private Spawner spawner;
@@ -37,13 +37,14 @@ public class Enemy : MonoBehaviour {
 	void die(){
 		GameMaster.GM.score.updateScore(points);
 		status = STATUS.DEAD;
-		Destroy (this.gameObject, 0.50f);
+		//Destroy (this.gameObject, 0.50f);
 	}
 
 	public void takeDamage(int i){
 		Spawner spawner = gameObject.GetComponent<Spawner> (); 
-
 		spawner.spawnDamage (i);
+
+		movement.hit ();
 
 		health -= i;
 
